@@ -9,22 +9,10 @@ import (
 	"bufio"
 )
 
-const (
-	TencentCluster = "tencent_cluster"
-	AliyunCluster  = "aliyun_cluster"
-)
-
 // scanner used to scan keys
 type Scanner interface {
-	/*
-	 * get db node info.
-	 * return:
-	 *     int: node number. Used in aliyun_cluster
-	 */
-	NodeCount() (int, error)
-
 	// return scanned keys
-	ScanKey(node interface{}) ([]string, error) // return the scanned keys
+	ScanKey() ([]string, error) // return the scanned keys
 
 	// end current node
 	EndNode() bool
@@ -32,11 +20,13 @@ type Scanner interface {
 	Close()
 }
 
-func NewScanner(client redis.Conn) Scanner {
+func NewScanner(client redis.Conn, tencentNodeId string, aliyunNodeId int) Scanner {
 	if conf.Options.ScanSpecialCloud != "" {
 		return &SpecialCloudScanner{
-			client: client,
-			cursor: 0,
+			client:        client,
+			cursor:        0,
+			tencentNodeId: tencentNodeId,
+			aliyunNodeId:  aliyunNodeId,
 		}
 	} else if conf.Options.ScanKeyFile != "" {
 		if f, err := os.Open(conf.Options.ScanKeyFile); err != nil {
